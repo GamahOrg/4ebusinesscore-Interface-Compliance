@@ -1,0 +1,56 @@
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { NewsModel } from "../model/news-model";
+import { ResponseModel } from "../partials/response-model";
+import { NewsByIdModel } from "../model/newsById-model";
+import { NewsConsume } from "@4eplatform/shared/apis/news";
+
+export const fetchMainNews = createAsyncThunk<ResponseModel>(
+  "fetchMainNews",
+  async (data: any) => {
+    const response = await NewsConsume.getAllMainNews({});
+    return response;
+  },
+);
+
+interface newsState {
+  data: any;
+  loading: boolean;
+  error: string | null;
+  message: string | null;
+  totalPages: number;
+  totalItems: number;
+}
+
+const initialState: newsState = {
+  data: {},
+  loading: false,
+  error: null,
+  message: "",
+  totalItems: 0,
+  totalPages: 1,
+};
+
+const mainNewsSlice = createSlice({
+  name: "news",
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchMainNews.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchMainNews.fulfilled, (state, action) => {
+        state.data = action.payload.result as object;
+        state.loading = false;
+        state.error = null;
+        state.totalPages = action.payload.totalPages;
+        state.totalItems = action.payload.totalItems;
+      })
+      .addCase(fetchMainNews.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message as string;
+      });
+  },
+});
+
+export default mainNewsSlice.reducer;
